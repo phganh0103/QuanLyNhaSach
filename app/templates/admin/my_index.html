@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - All-in-One</title>
+    <!-- MDBootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet"/>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+
+    <style>
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+        }
+
+        .user-info .cart-quantity-badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .user-info a {
+            text-decoration: none;
+        }
+
+        .btn-custom {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<nav id="sidebarMenu" class="collapse d-lg-block sidebar bg-white">
+    <div class="position-sticky">
+        <div class="list-group list-group-flush">
+            <a href="#" class="list-group-item list-group-item-action py-2 ripple active">
+                <i class="fas fa-chart-line fa-fw me-3"></i><span>Dashboard</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main>
+    <div class="container pt-4">
+        <!-- Header Section -->
+        <div class="header-section">
+            <!-- Title -->
+            <h2>Dashboard - Quản lý Hệ thống PhuongAnhVu's bookstore</h2>
+            <!-- User Info -->
+            {% if current_user.is_authenticated %}
+            <div class="user-info">
+                <span>Hi {{ current_user.first_name }}!</span>
+                {% if current_user.avatar %}
+                <img src="{{ current_user.avatar }}" class="rounded-circle shadow-4 ms-3" alt="Avatar"/>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn btn-primary ms-4 btn-custom">Đăng xuất</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Row: Top Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        {%if revenue_data%}
+                        <h5>Tổng Doanh Thu {{revenue_data[revenue_data | length - 1][0]}}/{{revenue_data[revenue_data |
+                            length - 1][1]}}</h5>
+                        <p class="fs-3 price" data-price='{{revenue_data[revenue_data | length - 1][2]}}'></p>
+                        {% if (revenue_data[revenue_data | length - 1][2] / revenue_data[revenue_data | length - 2][2] *
+                        100) > 0%}
+                        <span>+</span>
+                        {%endif%}
+                        <small>{{(revenue_data[revenue_data | length - 1][2] / revenue_data[revenue_data | length -
+                            2][2] * 100) | round}}% so với tháng trước</small>
+                        {%else%}
+                        <h5>Chưa có dữ liệu</h5>
+                        {%endif%}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        {%if revenue_data%}
+                        <h5>Tổng Số Sách Đã Bán {{revenue_data[revenue_data | length -
+                            1][0]}}/{{revenue_data[revenue_data | length - 1][1]}}</h5>
+                        <p class="fs-3">{{revenue_data[revenue_data | length - 1][3]}} cuốn</p>
+                        {% if (revenue_data[revenue_data | length - 1][3] / revenue_data[revenue_data | length - 2][3] *
+                        100) > 0%}
+                        <span>+</span>
+                        {%endif%}
+                        <small>{{(revenue_data[revenue_data | length - 1][3] / revenue_data[revenue_data | length -
+                            2][3] * 100) | round}}% so với tháng trước</small>
+                        {%else%}
+                        <h5>Chưa có dữ liệu</h5>
+                        {%endif%}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-dark h-100">
+                    <div class="card-body">
+                        <h5>Tổng Số Sách Còn Trong Kho</h5>
+                        <p class="fs-3">{{total_book_in_invetory}} cuốn</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!--Quy định-->
+        <div class="row mb-4 d-flex align-items-center">
+            <!--form thay doi quy dinh-->
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5>Thay đổi quy định hệ thống</h5>
+                    </div>
+                    <div class="card-body">
+                        <form onsubmit="submit_config_system_form(event)">
+                            <div class="mb-3">
+                                <label for="order_online_cancel_timeout" class="form-label">Thời gian chờ tối đa cho đơn
+                                    hàng thanh toán online (phút): </label>
+                                <input type="number" id="order_online_cancel_timeout" class="form-control"
+                                       placeholder="Nhập thời gian" required step="0.1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="order_offline_cancel_timeout" class="form-label">Thời gian chờ tối đa cho
+                                    đơn hàng thanh toán tại quầy (phút)</label>
+                                <input type="number" id="order_offline_cancel_timeout" class="form-control"
+                                       placeholder="Nhập số lượng" required step="0.1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="inventory_min_import" class="form-label">Số lượng sách tối thiểu mỗi lần
+                                    nhập sách vào kho:</label>
+                                <input type="number" id="inventory_min_import" class="form-control"
+                                       placeholder="Nhập số lượng" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="inventory_import_limit" class="form-label">Chỉ nhập những sách có ít nhất
+                                    ... quyển trong kho</label>
+                                <input type="number" id="inventory_import_limit" class="form-control"
+                                       placeholder="Nhập số lượng" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Lưu Quy Định</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Những Quy Định Trong Hệ Thống</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Thời gian chờ tối đa cho đơn hàng thanh toán online:</span>
+                                <span id="order-online-timeout"><strong>{{ system_config.get('order_online_cancel_timeout') }}</strong> giây</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Thời gian chờ tối đa cho đơn hàng thanh toán tại quầy:</span>
+                                <span id="order-offline-timeout"><strong>{{ system_config.get('order_offline_cancel_timeout') }}</strong> giây</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Số lượng sách tối thiểu mỗi lần nhập sách vào kho:</span>
+                                <span><strong>{{system_config.get('inventory_min_import')}}</strong> sách</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Chỉ nhập những sách có ít nhất:</span>
+                                <span><strong>{{system_config.get('inventory_import_limit')}}</strong> quyển trong kho</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Row: Thống kê Doanh Thu-->
+        <div class="row">
+            <!-- Thống kê doanh thu table -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5>Bảng thống kê doanh thu theo tháng</h5>
+                    </div>
+                    <div class="card-body">
+                        <table id="revenueTable" class="table table-striped table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Doanh thu (VNĐ)</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {%for data in revenue_data%}
+                            <tr>
+                                <td>{{ data[0] ~ '/' ~ data[1] }}</td>
+                                <td class="price" data-price={{data[2]}}></td>
+                            </tr>
+                            {%endfor%}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Thống kê doanh thu chart -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5>Thống kê doanh thu theo tháng</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row: Thống kê tuần suất -->
+        <div class="row mb-4">
+            <!-- Doanh thu theo đầu sách table -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5>Bảng thống kê doanh số theo đầu sách</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-slider">
+                            {% for month, books in sales_data_by_month.items()%}
+                            <div class="slide">
+                                <table class="table table-striped table-bordered" id="salesTable">
+                                    <h5 class="mb-3">Thời gian: {{month}}</h5>
+                                    <thead>
+                                    <tr>
+                                        <th>Thời gian</th>
+                                        <th>Đầu sách</th>
+                                        <th>Doanh số</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for book, sales in books.items() %}
+                                    <tr>
+                                        <td>{{ month }}</td>
+                                        <td>{{ book }}</td>
+                                        <td>{{ sales }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Nút điều khiển -->
+                        <button id="table-prevSlide" class="btn btn-primary">Prev</button>
+                        <button id="table-nextSlide" class="btn btn-primary">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doanh thu theo đầu sách chart (Slick Carousel) -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5>Thống kê doanh thu theo đầu sách</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="slider">
+                            <!-- Các slide chứa biểu đồ -->
+                            {% for month_data in sales_data_by_month.items() %}
+                            <div class="slide">
+                                <h5>Thời gian: {{month_data[0]}}</h5>
+                                <canvas id="chartMonth{{ loop.index }}"></canvas>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Nút điều khiển -->
+                        <button id="prevSlide" class="btn btn-primary">Prev</button>
+                        <button id="nextSlide" class="btn btn-primary">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row: Quản lý sách -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5>Quản lý Sách và Người Dùng </h5>
+                    </div>
+                    <div class="card-body">
+                        <iframe src="/flask-admin/book" style="width: 100%; height: 600px; border: none;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- MDBootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Slick Carousel js -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
+<script src="../../static/javascript/format_currency.js"></script>
+<script>
+
+    function formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+
+        let result = "";
+
+        if (hours > 0) {
+            result += `${hours} giờ`;
+        }
+
+        if (minutes > 0) {
+            if (result) result += " ";
+            result += `${minutes} phút`;
+        }
+
+        if (remainingSeconds > 0) {
+            if (result) result += " ";
+            result += `${remainingSeconds} giây`;
+        }
+
+        return result || "0 giây";
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const onlineTimeoutInSeconds = parseInt("{{ system_config.get('order_online_cancel_timeout') }}");
+        const offlineTimeoutInSeconds = parseInt("{{ system_config.get('order_offline_cancel_timeout') }}");
+
+        document.getElementById('order-online-timeout').innerHTML = `<strong>${formatTime(onlineTimeoutInSeconds)}</strong>`;
+        document.getElementById('order-offline-timeout').innerHTML = `<strong>${formatTime(offlineTimeoutInSeconds)}</strong>`;
+    });
+
+    function submit_config_system_form(event) {
+        event.preventDefault();
+
+        const order_online_cancel_timeout = document.getElementById('order_online_cancel_timeout').value;
+        const order_offline_cancel_timeout = document.getElementById('order_offline_cancel_timeout').value;
+        const inventory_min_import = document.getElementById('inventory_min_import').value;
+        const inventory_import_limit = document.getElementById('inventory_import_limit').value;
+
+        const formData = {
+            order_online_cancel_timeout: parseFloat(order_online_cancel_timeout) * 60,
+            order_offline_cancel_timeout: parseFloat(order_offline_cancel_timeout) * 60,
+            inventory_min_import: inventory_min_import,
+            inventory_import_limit: inventory_import_limit
+        };
+
+
+        fetch('/update_config_system', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message)
+                if (data.success) {
+                    location.reload()
+                }
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
+            });
+    }
+
+    // Lấy dữ liệu từ phần tử table và chuẩn hóa thành mảng dữ liệu cho Chart.js
+    document.addEventListener('DOMContentLoaded', () => {
+        const revenueTable = document.querySelector('#revenueTable');
+        const revenueData = [];
+        const labels = [];
+
+        // Lấy các hàng trong bảng thống kê doanh thu
+        revenueTable.querySelectorAll('tbody tr').forEach(row => {
+            const columns = row.children;
+            const time = columns[0].innerText;
+            const revenue = parseFloat(columns[1].getAttribute('data-price')); // Lấy doanh thu
+
+            labels.push(time);
+            revenueData.push(revenue);
+        });
+
+        // Vẽ biểu đồ doanh thu theo tháng
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'bar', // Loại biểu đồ cột
+            data: {
+                labels: labels, // Gắn nhãn (tháng/năm)
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueData, // Dữ liệu doanh thu
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Thống kê doanh thu theo tháng'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return value.toLocaleString('vi-VN') + ' VNĐ'; // Hiển thị dạng VNĐ
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+
+    $(document).ready(function () {
+        $('.slider').slick({
+            slidesToShow: 1,       // Hiển thị 1 slide tại một thời điểm
+            slidesToScroll: 1,     // Cuộn 1 slide mỗi lần
+            arrows: false,         // Ẩn các mũi tên mặc định
+            dots: true,            // Hiển thị các dots điều khiển
+            autoplay: false        // Tắt chế độ autoplay
+        });
+
+        // Xử lý sự kiện cho các nút điều khiển
+        $('#prevSlide').click(function () {
+            $('.slider').slick('slickPrev');  // Trượt đến slide trước
+        });
+
+        $('#nextSlide').click(function () {
+            $('.slider').slick('slickNext');  // Trượt đến slide tiếp theo
+        });
+    });
+
+    $(document).ready(function () {
+        $('.table-slider').slick({
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: true,
+            dots: true,
+        });
+
+        $('#table-prevSlide').click(function () {
+            $('.table-slider').slick('slickPrev');  // Trượt đến slide trước
+        });
+
+        $('#table-nextSlide').click(function () {
+            $('.table-slider').slick('slickNext');  // Trượt đến slide tiếp theo
+        });
+    })
+
+    // Dữ liệu cho biểu đồ tháng (ví dụ)
+    const salesDataByMonth = JSON.parse('{{ sales_data_by_month | tojson | safe }}');
+
+    const monthlyData = Object.keys(salesDataByMonth).map((month) => ({
+        labels: Object.keys(salesDataByMonth[month]),
+        salesData: Object.values(salesDataByMonth[month])
+    }));
+
+    // Vẽ biểu đồ cho mỗi slide
+    document.addEventListener("DOMContentLoaded", function () {
+        monthlyData.forEach((data, index) => {
+            const ctx = document.getElementById(`chartMonth${index + 1}`).getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: data.salesData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, scales: {
+                        y: {
+                            beginAtZero: true, ticks: {
+                                stepSize: 1,
+                                callback: function (value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }, plugins: {legend: {display: false}}
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

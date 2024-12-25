@@ -1,0 +1,239 @@
+{%extends '/staff/base.html'%}
+{%block content%}
+<div class="container my-5">
+    <h1 class="text-center">Bán sách</h1>
+
+    <!-- Search Bar -->
+    <div class="row mb-4">
+        <!-- Search form -->
+        <form class="input-group w-100 my-auto d-none d-sm-flex" id="search_input">
+            <div class="row w-100">
+                <div class="col-md-8">
+                    <input
+                            autocomplete="off"
+                            type="search"
+                            class="form-control rounded"
+                            placeholder="Tìm kiếm sách..."
+                            style="min-width: 125px;"
+                    />
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary text-blue ms-3 w-100" style="border-radius: 10px;" type="submit">
+                        &#128269;
+                        Tìm kiếm
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- QR Code Scanner -->
+    <div class="mb-4">
+        <h5>📸 Quét mã sách:</h5>
+        <div id="qr-reader"
+             style="width: 100%; max-width: 400px; margin: auto; border: 1px dashed gray; padding: 10px;">
+            <p class="text-center">🔲 Máy quét mã QR sẽ xuất hiện ở đây</p>
+        </div>
+        <div id="qr-result" class="text-center mt-3 text-success">
+            Hãy quét mã QR để thêm sách vào giỏ hàng!
+        </div>
+    </div>
+
+    <!-- Book List -->
+    <h4 class="mb-3">📖 Danh sách sách:</h4>
+    <div class="row" id="book-list">
+        {%for item in inventory%}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.book.name }}</h5>
+                    <p class="card-text">Tác giả:
+                        {% for author in item.book.authors %}
+                        <span>{{ author }}</span>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p class="card-text">Thể loại:
+                        {% for genre in item.book.genres %}
+                        <span>{{ genre }}</span>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p class="card-text price" data-price={{item.book.price}}></p>
+                    <div class="d-flex">
+                        <input type="number" id="quantity-{{ item.book.id }}" class="form-control me-2"
+                               placeholder="Số lượng" min="1" value="1" max={{item.current_quantity}}>
+                        <button class="btn btn-primary"
+                                onclick="addToCart({{ item.book.id }}, '{{ item.book.name }}', {{ item.book.price }})">Thêm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {%endfor%}
+        <div class="pagination mt-5 d-flex justify-content-center">
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            {% for i in range(1, pages + 1) %}
+            <li class="page-item {% if i == current_page %}active{% endif %}">
+                <a class="page-link text-blue fs-5"
+                   href="?page={{ i }}{% if query %}&query={{ query }}{% endif %}">
+                    {{ i }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </nav>
+</div>
+    </div>
+
+    <!-- Email Input Section -->
+    <div class="card mt-4">
+        <div class="card-header text-center bg-secondary text-white">
+            ✉️ Thông tin khách hàng
+        </div>
+        <div class="card-body">
+            <form id="customer-form" onsubmit="handleCustomer(event)">
+                <div class="mb-3">
+                    <label for="customer-email" class="form-label">Email khách hàng:</label>
+                    <input type="email" id="customer-email" class="form-control" placeholder="Nhập email của bạn"
+                           required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Xác nhận</button>
+            </form>
+            <div id="customer-status" class="mt-3 text-success"></div>
+        </div>
+    </div>
+    <!-- Cart Section -->
+    <div class="card mt-4">
+        <div class="card-header text-center bg-primary text-white" id="title">
+            🛒 Giỏ Hàng
+        </div>
+        <div class="card-body">
+            <ul class="list-group" id="cart-items"></ul>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Tổng tiền: <span id="total-price">0</span> VNĐ</h5>
+            <button class="btn btn-success" onclick="checkout()">Thanh Toán</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="../../static/javascript/format_currency.js"></script>
+<script>
+    const cart = [];
+    let user = null;
+
+    function addToCart(bookId, bookName, bookPrice) {
+        const quantityInput = document.getElementById(`quantity-${bookId}`);
+        const quantity = parseInt(quantityInput.value);
+        if (quantity < 1) return alert("Số lượng phải lớn hơn 0");
+
+        const existing = cart.find(item => item.id === bookId);
+        if (existing) {
+            existing.quantity += quantity;
+        } else {
+            cart.push({id: bookId, name: bookName, price: bookPrice, quantity});
+        }
+        updateCart();
+    }
+
+    function updateCart() {
+        const cartItems = document.getElementById("cart-items");
+        const totalPriceEl = document.getElementById("total-price");
+        cartItems.innerHTML = "";
+        let totalPrice = 0;
+
+        cart.forEach(item => {
+            totalPrice += item.price * item.quantity;
+            cartItems.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${item.name} - ${item.quantity} x ${item.price.toLocaleString()} VNĐ
+                    <button class="btn btn-danger btn-sm" onclick="removeFromCart(${item.id})">Xóa</button>
+                </li>`;
+        });
+
+        totalPriceEl.innerText = totalPrice.toLocaleString();
+    }
+
+    function removeFromCart(bookId) {
+        const index = cart.findIndex(item => item.id === bookId);
+        if (index !== -1) cart.splice(index, 1);
+        updateCart();
+    }
+
+    function checkout() {
+        if (cart.length === 0) return alert("Giỏ hàng trống! Hãy thêm sách vào giỏ hàng trước khi thanh toán.");
+        fetch('/staff/sell-book/checkout', {
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                'order_details': JSON.stringify(cart),
+                'customer_id': user ? user.id : user,
+                'seller_id': '{{current_user.id}}'
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(data.message)
+                    cart.length = 0;
+                    updateCart();
+                } else {
+                    alert(data.message)
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi trong quá trình fetch:", error);
+                alert('Có lỗi xảy ra khi thanh toán.');
+            });
+    }
+
+    function searchBook() {
+        alert("Tìm kiếm sách chưa được triển khai.");
+    }
+
+    function handleCustomer(event) {
+        event.preventDefault();
+        const emailInput = document.getElementById("customer-email");
+        const email = emailInput.value;
+
+        fetch('/staff/sell-book/find-customer-by-email', {
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email: email})
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    user = data.user
+                    alert(`Khách hàng tìm thấy: ${data.user.first_name}`);
+                    document.getElementById('title').innerText = `Giỏ hàng của ${data.user.first_name}`
+                } else {
+                    alert("Không tìm thấy khách hàng.");
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi trong quá trình fetch:", error);
+                alert('Có lỗi xảy ra khi kiểm tra email.');
+            });
+
+    }
+
+    // QR Code Scanner Integration (Mockup)
+    function mockQRCodeResult(bookId, bookName, bookPrice) {
+        alert(`Mã QR quét thành công: ${bookName}`);
+        addToCart(bookId, bookName, bookPrice);
+    }
+</script>
+<script src="../../static/javascript/search_product.js"></script>
+{%endblock%}

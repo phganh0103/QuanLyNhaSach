@@ -1,0 +1,146 @@
+<h1 class="text-center text-primary mb-5">📦 NHẬP SÁCH VÀO KHO</h1>
+<!-- Biểu mẫu nhập sách -->
+<form id="book-import-form">
+    <table class="table table-bordered text-center align-middle">
+        <thead class="table-light">
+        <tr>
+            <th>STT</th>
+            <th>Tên sách</th>
+            <th>Thể loại</th>
+            <th>Tác giả</th>
+            <th>Số lượng</th>
+            <th>Xóa</th>
+        </tr>
+        </thead>
+        <tbody id="book-rows">
+        <!-- Row 1 -->
+        <tr>
+            <td>1</td>
+            <td>
+                <select class="form-select select2-enable" name="book_name" style="width: 100%;" required
+                        onchange="fillBookDetails(this)">
+                    <option value="">Nhập tên sách</option>
+                    {% for book in books %}
+                    <option value="{{ book.id }}" data-genre="{{ book.genres|join(', ') }}"
+                            data-author="{{ book.authors|join(', ') }}">{{
+                        book.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td><input type="text" class="form-control" name="genre" placeholder="Nhập thể loại" required readonly>
+            </td>
+            <td><input type="text" class="form-control" name="author" placeholder="Nhập tác giả" required readonly>
+            </td>
+            <td><input type="number" class="form-control" name="quantity" placeholder="0" min="150" required
+                       value="150"></td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteRow(this)">
+                    Xóa
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary me-2" onclick="addBookInventoryRow()">➕ Thêm dòng</button>
+        <button type="submit" class="btn btn-primary">📥 Xác nhận nhập sách vào kho</button>
+    </div>
+</form>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Thêm dòng mới vào bảng nhập sách vào kho
+    function addBookInventoryRow() {
+        const tableBody = document.getElementById('book-rows');
+        const newRowIndex = tableBody.rows.length + 1;
+
+        // HTML cho dòng mới
+        const newRow = `
+    <tr>
+        <td>${newRowIndex}</td>
+        <td>
+            <select class="form-select select2-enable" name="book_name" style="width: 100%;" required
+                    onchange="fillBookDetails(this)">
+                <option value="">Nhập tên sách</option>
+                {% for book in books %}
+                <option value="{{ book.id }}" data-genre="{{ book.genres|join(', ') }}"
+                        data-author="{{ book.authors|join(', ') }}">{{
+                    book.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </td>
+        <td><input type="text" class="form-control" name="genre" placeholder="Nhập thể loại" required readonly></td>
+        <td><input type="text" class="form-control" name="author" placeholder="Nhập tác giả" required readonly></td>
+        <td><input type="number" class="form-control" name="quantity" placeholder="0" min="150" required value="150"></td>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm" onclick="deleteRow(this)">Xóa</button>
+        </td>
+    </tr>`;
+
+        // Thêm dòng mới vào bảng
+        tableBody.insertAdjacentHTML('beforeend', newRow);
+
+        // Khởi tạo lại Select2 cho các phần tử mới
+        $('.select2-enable').each(function () {
+            if (!$(this).data('select2')) {
+                $(this).select2({
+                    placeholder: "Nhập tên sách để tìm kiếm",
+                    width: 'resolve',
+                    allowClear: true
+                });
+            }
+        });
+    }
+
+    // Xử lý Submit Form
+    $('#book-import-form').on('submit', function (e) {
+        e.preventDefault();
+
+        let booksData = [];
+
+        // Duyệt qua từng hàng trong bảng
+        $('#book-rows tr').each(function () {
+            const bookId = $(this).find('select[name="book_name"]').val();
+            const quantity = $(this).find('input[name="quantity"]').val();
+
+            booksData.push({
+                id: bookId,
+                quantity: parseInt(quantity, 10)
+            });
+        });
+
+        fetch('/store_manager/import_books', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(booksData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message)
+                if (data.success) {
+                    location.reload()
+                }
+            })
+            .catch(error => {
+                alert(error)
+            })
+    });
+
+    // tự động điền tác giả, thể loại khi chọn sách
+    function fillBookDetails(selectElement) {
+        // Lấy thông tin từ option được chọn
+        var selectedOption = selectElement.options[selectElement.selectedIndex];
+
+        // Lấy genre và author từ thuộc tính data
+        var genres = selectedOption.getAttribute('data-genre');
+        var authors = selectedOption.getAttribute('data-author');
+
+        // Điền thông tin vào các trường genre và author
+        var genreField = selectElement.closest('tr').querySelector('input[name="genre"]');
+        var authorField = selectElement.closest('tr').querySelector('input[name="author"]');
+
+        genreField.value = genres;
+        authorField.value = authors;
+    }
+</script>

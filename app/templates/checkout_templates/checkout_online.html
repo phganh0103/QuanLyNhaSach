@@ -1,0 +1,121 @@
+{%extends 'base/base.html'%}
+{%block content%}
+<div class="min-vh-100">
+    <div class="container my-5">
+        <div class="card">
+            <div class="card-header bg-white text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <img src="https://developers.momo.vn/v3/vi/assets/images/square-logo-f8712a4d5be38f389e6bc94c70a33bf4.png"
+                         alt="Logo" class="img-fluid" style="width: 100px">
+                    <div class="text-dark d-flex align-items-center">
+                        <i class="far fa-clock me-2"></i>
+                        <span class="text-muted fs-5">Giao dịch sẽ bị hủy sau:</span>
+                        <span id="countdown" class="fs-5 text-blue ms-3"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning text-center text-warning">
+                    Quý khách vui lòng ấn xác nhận đã chuyển khoản khi chuyển khoản thành công. Trường hợp đã
+                    thanh toán nhưng chưa nhận kết quả giao dịch, vui lòng liên hệ với chúng tôi <a
+                        href="https://www.facebook.com/profile.php?id=100009984096020" class="text-blue">tại đây</a>.
+                    Xin cảm ơn!
+                </div>
+                <div class="row">
+                    <!-- Thông tin đơn hàng -->
+                    <div class="col-md-6">
+                        <p class="mb-4 fs-3 text-blue fw-bold">Thông tin đơn hàng</p>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="text-blue">Số tiền thanh toán:</span>
+                                <strong class="text-blue price" data-price={{total_price}}></strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="text-muted">Giá trị đơn hàng:</span>
+                                <strong class="text-muted price" data-price={{total_price}}></strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="text-muted">Phí giao dịch:</span>
+                                <strong class="text-muted">0 VND</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="text-blue">Mã đơn hàng:</span>
+                                <strong class="text-blue">{{ "{:06d}".format(order_id) }}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="text-muted">Nhà cung cấp:</span>
+                                <strong class="text-muted">PhuongAnhVu's bookstore</strong>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Mã QR -->
+                    <div class="col-md-6 d-flex flex-column align-items-center">
+                        <h5 class="mb-4 fs-4 text-blue fw-bold">Quét mã qua ứng dụng Ngân hàng/ Ví điện tử</h5>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
+                             alt="QR Code" class="img-fluid mb-3">
+                        <div class="d-flex">
+                            <button class="btn btn-custom bg-danger">Hủy thanh toán</button>
+                            <button class="btn btn-custom text-blue ms-3 btn-confirm-payment">Xác nhận thanh toán</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const deadline = new Date("{{deadline}}").getTime();
+
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const timeLeft = deadline - now;
+
+        if (timeLeft > 0) {
+            const totalHours = Math.floor(timeLeft / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            document.getElementById("countdown").textContent =
+                `${String(totalHours).padStart(2, '0')} : ${String(minutes).padStart(2, '0')} : ${String(seconds).padStart(2, '0')}`;
+        } else {
+            clearInterval(countdownInterval);
+            document.getElementById("countdown").textContent = "Hết hạn!";
+            alert("Hết hạn")
+            window.location.href = "/"
+        }
+    }
+
+    const countdownInterval = setInterval(updateCountdown, 1000);
+
+    updateCountdown();
+
+
+    document.querySelector('.btn-confirm-payment').addEventListener('click', () => {
+        const orderId = "{{ order_id }}";
+
+        fetch('/checkout/confirm', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({order_id: orderId}),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '/';
+                } else {
+                    alert('Xác nhận thanh toán thất bại!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi. Vui lòng thử lại.');
+            });
+    });
+
+</script>
+<script src="../../static/javascript/format_currency.js"></script>
+{%endblock%}
+

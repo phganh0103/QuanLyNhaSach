@@ -1,0 +1,242 @@
+<h1 class="text-center text-primary mb-5 mt-5">📦 NHẬP THÔNG TIN SÁCH MỚI</h1>
+<div class="container">
+    <form id="post_new_book" onsubmit="addBooks(event)">
+        <div class="row gy-4" id="book-info-rows">
+            <!-- Row 1 -->
+            <div class="row gy-4 book-row" id="book_row_1">
+                <div class="col-12">
+                    <h5 class="fw-bold">Sách 1</h5>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <label for="name_1" class="form-label">Tên sách</label>
+                    <input type="text" class="form-control" id="name_1" name="name_1"
+                           placeholder="Nhập tên sách" required>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <label for="genres_1" class="form-label">Thể loại</label>
+                    <select class="form-select select2-enable" id="genres_1" name="genres_1" multiple="multiple"
+                            required>
+                        {% for genre in genres %}
+                        <option value="{{ genre.id }}">{{ genre.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <label for="authors_1" class="form-label">Tác giả</label>
+                    <select class="form-select select2-enable" id="authors_1" name="authors_1" multiple="multiple"
+                            required>
+                        {% for author in authors %}
+                        <option value="{{ author.id }}">{{ author.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <label for="price_1" class="form-label">Giá</label>
+                    <input type="number" class="form-control" id="price_1" name="price_1" placeholder="Giá sách"
+                           required>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <label for="pages_1" class="form-label">Số trang</label>
+                    <input type="number" class="form-control" id="pages_1" name="pages_1" placeholder="Số trang" min="1"
+                           required>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <label for="duration_1" class="form-label">Thời gian</label>
+                    <input type="number" class="form-control" id="duration_1" name="duration_1" placeholder="Thời gian"
+                           min="0" step="0.1" required>
+                </div>
+                <div class="col-md-12">
+                    <label for="description_1" class="form-label">Mô tả</label>
+                    <textarea class="form-control" id="description_1" name="description_1" placeholder="Nhập mô tả"
+                              rows="3" required></textarea>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <label for="image_1" class="form-label">HÌnh ảnh đại diện</label>
+                    <input type="file" class="form-control" id="image_1" name="image_1" placeholder="Hình ảnh đại diện"
+                           accept="image/jpeg, image/png, image/gif" required>
+                </div>
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteBookRow(this)">Xóa sách này
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút thêm và submit -->
+        <div class="row mt-4">
+            <div class="col-12 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" onclick="addBookRow()">➕ Thêm sách</button>
+                <button type="submit" class="btn btn-primary">📥 Xác nhận nhập thông tin sách</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    let bookCount = 1;
+
+    // Hàm thêm sách mới
+    function addBookRow() {
+        bookCount++;
+        const bookRows = document.getElementById('book-info-rows');
+        const newRow = `
+        <div class="row gy-4 book-row" id="book_row_${bookCount}">
+            <div class="col-12">
+                <h5 class="fw-bold">Sách ${bookCount}</h5>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <label for="name_${bookCount}" class="form-label">Tên sách</label>
+                <input type="text" class="form-control" id="name_${bookCount}" name="name_${bookCount}" placeholder="Nhập tên sách" required>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <label for="genres_${bookCount}" class="form-label">Thể loại</label>
+                <select class="form-select select2-enable" id="genres_${bookCount}" name="genres_${bookCount}" multiple="multiple" required>
+                    {% for genre in genres %}
+                    <option value="{{ genre.id }}">{{ genre.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <label for="authors_${bookCount}" class="form-label">Tác giả</label>
+                <select class="form-select select2-enable" id="authors_${bookCount}" name="authors_${bookCount}" multiple="multiple" required>
+                    {% for author in authors %}
+                    <option value="{{ author.id }}">{{ author.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <label for="price_${bookCount}" class="form-label">Giá</label>
+                <input type="number" class="form-control" id="price_${bookCount}" name="price_${bookCount}" placeholder="Giá sách" required>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <label for="pages_${bookCount}" class="form-label">Số trang</label>
+                <input type="number" class="form-control" id="pages_${bookCount}" name="pages_${bookCount}" placeholder="Số trang" min="1" required>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <label for="duration_${bookCount}" class="form-label">Thời gian</label>
+                <input type="number" class="form-control" id="duration_${bookCount}" name="duration_${bookCount}" placeholder="Thời gian" min="0" step="0.1" required>
+            </div>
+            <div class="col-md-12">
+                <label for="description_${bookCount}" class="form-label">Mô tả</label>
+                <textarea class="form-control" id="description_${bookCount}" name="description_${bookCount}" placeholder="Nhập mô tả" rows="3" required></textarea>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                    <label for="image_${bookCount}" class="form-label">HÌnh ảnh đại diện</label>
+                    <input type="file" class="form-control" id="image_${bookCount}" name="image_${bookCount}" placeholder="Hình ảnh đại diện"
+                           accept="image/jpeg, image/png, image/gif" required>
+                </div>
+            <div class="col-12 d-flex justify-content-end">
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteBookRow(this)">Xóa sách này</button>
+            </div>
+        </div>`;
+
+        // Thêm dòng mới
+        bookRows.insertAdjacentHTML('beforeend', newRow);
+
+        // Tái khởi tạo select2 cho các phần tử mới
+        $('#genres_' + bookCount).select2({
+            placeholder: "Chọn thể loại",
+            width: '100%',
+            allowClear: true
+        });
+        $('#authors_' + bookCount).select2({
+            placeholder: "Chọn tác giả",
+            width: '100%',
+            allowClear: true
+        });
+    }
+
+    // Hàm xóa sách
+    function deleteBookRow(button) {
+        const bookRow = button.closest('.book-row');
+        if (bookRow) {
+            bookRow.remove();
+        }
+    }
+
+    // Khởi tạo Select2
+    function initSelect2() {
+        $('.select2-enable').select2({
+            placeholder: "Chọn một mục",
+            width: 'resolve',
+            allowClear: true
+        });
+    }
+
+    // Khởi chạy khi trang load
+    $(document).ready(function () {
+        initSelect2();
+    });
+
+    function addBooks(e) {
+    e.preventDefault();
+
+    // Lấy form
+    const form = document.getElementById('post_new_book');
+    const formData = new FormData();
+
+    // Mảng chứa thông tin sách
+    const booksData = [];
+
+    // Duyệt qua tất cả các input trong form và gộp thông tin
+    const rawFormData = new FormData(form);
+    rawFormData.forEach((value, key) => {
+        const keyParts = key.match(/(.+?)_(\d+)$/);
+        if (keyParts) {
+            const field = keyParts[1]; // Tên trường (book_name, genres, ...)
+            const index = parseInt(keyParts[2], 10) - 1; // Chỉ số mảng (bắt đầu từ 0)
+
+            if (!booksData[index]) {
+                booksData[index] = {}; // Tạo object cho sách nếu chưa có
+            }
+
+            // Nếu trường là genres hoặc authors => luôn đảm bảo là mảng
+            if (field === "genres" || field === "authors") {
+                if (!booksData[index][field]) {
+                    booksData[index][field] = [];
+                }
+                booksData[index][field].push(value);
+            } else if (field === "image") {
+                // Đính kèm ảnh trực tiếp vào FormData
+                formData.append(`images[${index}]`, value);
+            } else {
+                booksData[index][field] = value;
+            }
+        }
+    });
+
+    // Đảm bảo genres và authors luôn là mảng kể cả khi có 1 phần tử
+    booksData.forEach(book => {
+        if (book.authors && !Array.isArray(book.authors)) {
+            book.authors = [book.authors];
+        }
+        if (book.genres && !Array.isArray(book.genres)) {
+            book.genres = [book.genres];
+        }
+    });
+
+    // Đưa dữ liệu sách (trừ ảnh) vào formData
+    formData.append('books', JSON.stringify(booksData));
+
+    // Gửi dữ liệu lên server
+    fetch('/store_manager/add_books', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Không thể gửi thông tin sách!');
+        }
+    })
+    .then(data => {
+        alert(data.message);
+        location.reload()
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi gửi thông tin sách.');
+    });
+}
+</script>

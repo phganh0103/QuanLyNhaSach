@@ -1,0 +1,64 @@
+{% extends 'base/base.html' %}
+{% block content %}
+<div class="min-vh-100 d-flex justify-content-center align-items-center">
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6 d-flex justify-content-center">
+                <div class="book-card">
+                    <img
+                            src={{book.image}}
+                            alt="Book Cover"
+                            class="img-fluid my-3"
+                    />
+                </div>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-start flex-column justify-content-around pt-5 pb-5 pr-5">
+                <p class="text-blue fs-2 fw-bold">{{book.name}}</p>
+                <p class="text-yellow fs-2 fw-bolder price" data-price={{book.price}}></p>
+                <p class="text-muted">{{book.description}}</p>
+                <ul class="info-list fs-5" style="padding-left: 0">
+                    <li><strong class="text-blue fw-light">Thể loại:</strong>
+                        {% for genre in book.genres %}
+                        <a href="/?genre={{ genre }}" class="text-muted">{{ genre }}</a>{% if not loop.last %}, {%
+                        endif %}
+                        {% endfor %}
+                    </li>
+
+                    <li><strong class="text-blue fw-light">Tác giả:</strong>
+                        {% for author in book.authors %}
+                        <a href="/?author={{ author }}" class="text-muted">{{ author }}</a>{% if not loop.last %}, {%
+                        endif %}
+                        {% endfor %}
+                    </li>
+                    <li><strong class="text-blue fw-light">Số trang:</strong> <span
+                            class="text-muted">{{book.pages}}</span></li>
+                    <li><strong class="text-blue fw-light">Thời lượng:</strong> <span class="text-muted">{{book.duration}} giờ</span>
+                    </li>
+                </ul>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-outline" data-mdb-input-init>
+                            <input type="number" id="typeNumber" class="form-control fs-5" value="1" min="1" max="{{book_inventory_quantity}}"/>
+                        </div>
+                    </div>
+                    <div class="col-9">
+                        <div>
+                            <button
+                                    class="btn btn-custom add-to-cart"
+                                    data-book-id="{{ book.id }}"
+                                    data-book-price="{{ book.price }}"
+                                    data-book-quantity="1"
+                            >
+                                Thêm vào giỏ hàng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../static/javascript/add_products_to_cart.js"></script>
+<script src="../static/javascript/format_currency.js"></script>
+{%endblock%}

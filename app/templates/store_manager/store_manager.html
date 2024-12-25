@@ -1,0 +1,63 @@
+{% extends 'staff/base.html' %}
+{% block content %}
+<div class="container my-5">
+
+    {% include 'store_manager/import_book_into_inventory.html' %}
+
+    <!-- Quy định -->
+    <div class="alert alert-info mt-4">
+        <p class="fw-bold">Quy định:</p>
+        <ul>
+            <li>Số lượng nhập ít nhất <strong>{{system_config.get('inventory_min_import')}}</strong> sách.</li>
+            <li>Chỉ nhập những đầu sách có số lượng tồn kho <strong>dưới {{system_config.get('inventory_import_limit')}}</strong>.</li>
+        </ul>
+    </div>
+
+    {% include 'store_manager/post_new_book_form.html' %}
+
+    {% include 'store_manager/post_new_genre_form.html' %}
+
+    {% include 'store_manager/post_new_author_form.html' %}
+
+    <!-- Select2 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
+    <style>
+        /* Tùy chỉnh Select2 để tránh xung đột với MDB */
+        .select2-container .select2-selection--single {
+            height: 38px !important;
+            line-height: 38px !important;
+        }
+
+        .select2-container .select2-selection__rendered {
+            line-height: 38px !important;
+        }
+
+        .select2-container .select2-selection__arrow {
+            height: 38px !important;
+        }
+    </style>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <script>
+        // Hàm khởi tạo Select2 cho các trường input
+        function initSelect2() {
+            $('.select2-enable').select2({
+                placeholder: "Nhập tên sách để tìm kiếm",
+                allowClear: true
+            });
+        }
+
+        // Khởi tạo Select2 khi trang load
+        $(document).ready(function () {
+            initSelect2();
+        });
+        deleteRow = (button) => {
+            const row = button.closest('tr');
+            row.remove();
+        }
+    </script>
+    {% endblock %}

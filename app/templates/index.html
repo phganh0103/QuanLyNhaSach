@@ -1,0 +1,165 @@
+{% extends 'base/base.html' %}
+{% block content %}
+
+<div class="w-100 bg-blue min-vh-100 d-flex align-items-center">
+    <div class="container">
+        <div class="row">
+            {%if title_book%}
+            <div class="col-md-6 d-flex flex-column justify-content-center text-white">
+                <h6 class="mb-2 fst-italic fs-3" style="color: #FFC107;">Welcome To PhuongAnhVu's Bookstore!!!</h6>
+                <h1 class="fw-bold">{{ title_book['book'].name }}</h1>
+                <p class="mb-4">{{ title_book['book'].description }}</p>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-custom px-4 py-2 text-blue add-to-cart {% if title_book['quantity'] == 0 %}btn-secondary{% endif %}"
+                            data-book-id="{{ title_book['book'].id }}"
+                            data-book-price="{{ title_book['book'].price }}"
+                            {% if title_book[
+                    'quantity'] == 0 %}disabled{% endif %}>
+
+                    Thêm vào giỏ hàng
+                    </button>
+                </div>
+                <div class="d-flex gap-5 mt-4">
+                    <span><strong>Số trang:</strong> {{ title_book['book'].pages }} trang</span>
+                    <span><strong>Thời lượng:</strong> {{ title_book['book'].duration }} giờ</span>
+                </div>
+            </div>
+
+            <div class="col-md-6 d-flex justify-content-center align-items-center">
+                <div class="book-card">
+                    <a href=/products/{{title_book['book'].id}} class="ripple" data-mdb-ripple-color="light">
+                        <img
+                                alt="{{ title_book['book'].name }}"
+                                class="img-fluid rounded"
+                                src="{{ title_book['book'].image }}"
+                        />
+                    </a>
+                </div>
+            </div>
+            {%endif%}
+        </div>
+    </div>
+</div>
+
+<section class="py-5 d-flex align-items-center" style="min-height: 80vh">
+    <div class="container text-center">
+        {%if genre%}
+        <h2 class="mb-4 text-blue fw-bold">Tất cả sách thuộc thể loại {{genre.lower()}}</h2>
+        {%else%}
+        <h2 class="mb-4 text-blue fw-bold">Tất cả sách trong cửa hàng</h2>
+        {%endif%}
+        <hr class="w-25 mx-auto mb-5" style="border-top: 3px solid #f5b301;">
+        <div class="d-flex align-items-center justify-content-between">
+            <!-- Search form -->
+            <form class="input-group w-auto my-auto d-none d-sm-flex" id="search_input">
+                <input
+                        autocomplete="off"
+                        type="search"
+                        class="form-control rounded"
+                        placeholder="Tìm kiếm sách..."
+                        style="min-width: 125px;"
+                />
+                <button class="btn btn-custom text-blue ms-3" style="border-radius: 10px;" type="submit">
+                    &#128269;
+                </button>
+            </form>
+
+            <div class="dropdown text-end">
+                <button
+                        class="btn ms-3 btn-custom fs12 text-blue dropdown-toggle"
+                        type="button"
+                        id="dropdownMenuButton"
+                        data-mdb-toggle="dropdown"
+                        aria-expanded="false"
+                >
+                    Sắp xếp theo
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <li><a class="dropdown-item text-blue" href="/">Mới nhất</a></li>
+                    <li>
+                        <a class="dropdown-item text-blue"
+                           href="?orderby=o1{% if genre %}&genre={{ genre }}{% endif %}{% if query %}&query={{ query }}{% endif %}{% if current_page %}&page={{ current_page }}{% endif %}">
+                            Giá tăng dần
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item text-blue"
+                           href="?orderby=o2{% if genre %}&genre={{ genre }}{% endif %}{% if query %}&query={{ query }}{% endif %}{% if current_page %}&page={{ current_page }}{% endif %}">
+                            Giá giảm dần
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            {% for book in books %}
+            <div class="col-md-6 mb-4 d-flex mt-5">
+                <div class="col-6 d-flex flex-column justify-content-between" style="max-width: 40%">
+                    <a href=/products/{{book['book'].id}} class="ripple" data-mdb-ripple-color="light">
+                        <img
+                                src="{{ book['book'].image }}"
+                                class="img-fluid rounded shadow-lg"
+                                alt="{{ book['book'].name }}"
+                                style="max-width: 100%;"
+                        />
+                    </a>
+                </div>
+
+                <div class="col-6">
+                    <div class="ml-3 d-flex flex-column justify-content-around align-items-start p-4"
+                         style="min-height: 100%; text-align: left">
+                        <h5 class="fw-bold text-blue fs-2">{{ book['book'].name }}</h5>
+                        <p class="text-warning fw-bold mb-1 fs-3 price" data-price="{{ book['book'].price }}"></p>
+                        <p class="mb-1" style="color: #969aa0!important;">{{ book['book'].description }}</p>
+                        <p class="text-muted fw-bold mb-3">
+                            <i class="fas fa-circle text-blue"></i>
+                            {% for genre in book['book'].genres %}
+                            <a href="/?genre={{ genre }}" class="text-blue">{{ genre }}</a>{% if not loop.last %}, {%
+                            endif %}
+                            {% endfor %}
+                        </p>
+                        <button class="btn btn-custom fs12 text-blue add-to-cart {% if book['quantity'] == 0 %}btn-secondary{% endif %}"
+                                data-book-id="{{ book['book'].id }}"
+                                data-book-price="{{ book['book'].price }}"
+                                {% if book[
+                        'quantity'] == 0 %}disabled{% endif %}>
+                        {% if book['quantity'] == 0 %}
+                        Hết hàng
+                        {% else %}
+                        Thêm vào giỏ hàng
+                        {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<div class="pagination mt-5 d-flex justify-content-center">
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            {% for i in range(1, pages + 1) %}
+            <li class="page-item {% if i == current_page %}active{% endif %}">
+                <a class="page-link text-blue fs-5"
+                   href="?page={{ i }}{% if genre %}&genre={{ genre }}{% endif %}{% if orderby %}&orderby={{ orderby }}{% endif %}{% if query %}&query={{ query }}{% endif %}">
+                    {{ i }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </nav>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var dropdowns = document.querySelectorAll('.dropdown-toggle');
+        dropdowns.forEach(function (dropdown) {
+            new mdb.Dropdown(dropdown);
+        });
+    });
+</script>
+<script src="../static/javascript/search_product.js"></script>
+<script src="../static/javascript/format_currency.js"></script>
+<script src="../static/javascript/add_products_to_cart.js"></script>
+{% endblock %}

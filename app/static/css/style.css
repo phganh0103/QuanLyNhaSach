@@ -1,0 +1,82 @@
+body {
+    overflow-x: hidden;
+    font-size: 17px;
+}
+
+* {
+    color: #f6f8fc !important;
+}
+
+input {
+    color: black !important;
+}
+
+.err_msg {
+    color: orangered !important;
+}
+
+.book-card {
+    max-width: 400px;
+    border-radius: 15px;
+    background-color: white;
+    padding: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-custom {
+    background-color: #FFC107;
+    font-weight: bold;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+.btn-custom:hover {
+    background-color: #e0a800;
+}
+
+.fs12{
+    font-size: 12px !important;
+}
+
+.text-blue{
+    color: #0B2042 !important;
+}
+
+p {
+    margin-bottom: 10px;
+    font-family: Inter, sans-serif;
+    font-size: 19px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.bg-blue{
+    background: #1b3764;
+}
+
+.bg-yellow{
+    background-color: #FFC107;
+}
+
+.text-yellow{
+    color: #FFC107!important;
+}
+.cart-quantity-badge{
+    background-color: #FFC107;
+    color: black !important;
+    font-size: 12px;
+    position: absolute;
+    top: -40%;
+    bottom: auto;
+    left: 30px;
+    height: 18px;
+    min-width: 18px;
+    text-align: center;
+    border-radius: 9px;
+    margin-left: 8px;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-weight: 700;
+    line-height: 18px;
+    display: inline-block;
+}

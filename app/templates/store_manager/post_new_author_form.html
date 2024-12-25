@@ -1,0 +1,83 @@
+<!-- Nhập tác giả -->
+<h1 class="text-center text-primary mb-5 mt-5">NHẬP THÔNG TIN TÁC GIẢ MỚI</h1>
+<form id="post_new_author" onsubmit="addAuthors(event)">
+    <table class="table table-bordered text-center align-middle">
+        <thead class="table-light">
+        <tr>
+            <th>STT</th>
+            <th>Tên tác giả</th>
+            <th>Xóa</th>
+        </tr>
+        </thead>
+        <tbody id="author-info-rows">
+        <!-- Row 1 -->
+        <tr>
+            <td>1</td>
+            <td><input type="text" class="form-control" name="author_name" placeholder="Nhập tên tác giả" required>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteRow(this)">
+                    Xóa
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary me-2" onclick="addAuthorRow()">➕ Thêm dòng</button>
+        <button type="submit" class="btn btn-primary">📥 Xác nhận nhập thông tin tác giả</button>
+    </div>
+</form>
+
+<script>
+    function addAuthorRow() {
+        const tableBody = document.getElementById('author-info-rows');
+        const newRowIndex = tableBody.rows.length + 1;
+        const newRow = `
+    <tr>
+        <td>${newRowIndex}</td>
+        <td><input type="text" class="form-control" name="author_name" placeholder="Nhập tên tác giả" required></td>
+        <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteRow(this)">
+                    Xóa
+                </button>
+            </td>
+    </tr>`;
+        tableBody.insertAdjacentHTML('beforeend', newRow);
+    }
+
+    function addAuthors(e) {
+        e.preventDefault()
+        const formData = new FormData(document.getElementById('post_new_author'));
+        authors = []
+        formData.forEach((value) => {
+            authors.push(value)
+        });
+
+        fetch('/store_manager/add_authors', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(authors)
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json()
+                } else {
+                    throw new Error('Không thể thêm tác giả mới!');
+                }
+            })
+            .then(data => {
+                if(data.success){
+                    alert('Nhập tác giả mới thành công')
+                    location.reload()
+                }
+                else{
+                    alert(data.message)
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Có lỗi xảy ra khi thêm tác giả.');
+            });
+    }
+</script>

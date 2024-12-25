@@ -1,0 +1,76 @@
+{% extends 'base/base.html' %}
+{% block content %}
+{%if current_user.id%}
+<div class="min-vh-100 d-flex align-items-center">
+    <div class="container mt-5">
+        <!-- Cart items section -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-blue fs-1 fst-italic fw-bold">Giỏ Hàng</h5>
+                {%if carts.order_details%}
+                <!-- Cart item -->
+                {%for cart in carts.order_details%}
+                <div class="row mb-4">
+                    <div class="col-3 d-flex align-items-center justify-content-center">
+                        <img src={{cart.book.image}} class="img-fluid rounded" alt="Product Image" style="width: 150px">
+                    </div>
+                    <div class="col-6">
+                        <h6 class="fw-bold text-blue fs-3">{{cart.book.name}}</h6>
+                        <p class="text-muted">{{cart.book.description}}</p>
+                        <p class="text-blue" style="display: inline-block">Thể loại: </p>
+                        {% for genre in cart.book.genres %}
+                        <p class="text-blue" style="display: inline-block">{{ genre }}</p>{% if not loop.last %}<span
+                            class="text-blue">,</span>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="col-3 d-flex align-items-center justify-content-center flex-column">
+                        <p class="fw-bold text-danger fs-4 text-yellow price" data-price="{{cart.book.price}}"></p>
+                        <div class="d-flex align-items-center justify-content-around">
+                            <p class="text-muted">Số lượng: </p>
+                            <div class="form-outline" data-mdb-input-init style="width: 25%">
+                                <input
+                                        type="number"
+                                        id="typeNumber"
+                                        class="form-control fs-5"
+                                        value={{cart.quantity}}
+                                        cart_detail_id={{cart.id}}
+                                        min="1"
+                                        />
+                            </div>
+                            <button class="btn btn-custom delete-cart-detail" cart_detail_id="{{cart.id}}"
+                                    style="font-size: 10px">Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {%endfor%}
+
+                <!-- Total price and actions -->
+                <hr>
+                <div class="row">
+                    <div class="col-12 d-flex justify-content-between">
+                        <span class="fw-bold text-blue fs-3">Tổng tiền:</span>
+                        <span class="text-danger fw-bold price" data-price="{{total_price}}"></span>
+                    </div>
+                </div>
+
+                <!-- Checkout button -->
+                <div class="mt-4">
+                    <a href="/checkout" class="btn btn-custom w-100">Thanh toán</a>
+                </div>
+                {%else%}
+                <p class="fs-3 text-blue fw-bold">Giỏ hàng của bạn đang trống.</p>
+                {%endif%}
+            </div>
+        </div>
+    </div>
+</div>
+{%else%}
+<h1>Bạn cần đăng nhập để tiếp tục</h1>
+{%endif%}
+<script src="../static/javascript/delete_cart_detail.js"></script>
+<script src="../static/javascript/format_currency.js"></script>
+<script src="../static/javascript/change_order_quantity.js"></script>
+
+{%endblock%}

@@ -1,0 +1,107 @@
+{%extends 'staff/base.html'%}
+{%block content%}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Input mã đơn hàng -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Nhập Mã Đơn Hàng</h5>
+                    <form id="order-form">
+                        <div class="form-outline mb-4">
+                            <input type="text" id="order-id" class="form-control" placeholder="Nhập mã đơn hàng..."
+                                   required/>
+                            <label class="form-label" for="order-id">Mã Đơn Hàng</label>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" id="check-order-btn">Kiểm Tra</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Kết quả kiểm tra đơn hàng -->
+            <div id="order-result" class="card shadow-sm mt-4 d-none">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Thông Tin Đơn Hàng</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Tên khách hàng: <span id="customer-name"></span></li>
+                        <li class="list-group-item">Số điện thoại: <span id="customer-phone"></span></li>
+                        <li class="list-group-item">Tổng giá trị: <span id="total-amount" class="price"
+                                                                        data-price=""></span></li>
+                        <li class="list-group-item">Trạng thái: <span id="order-status"></span></li>
+                    </ul>
+                    <button type="button" class="btn btn-success w-100 mt-3" id="confirm-payment-btn">Xác Nhận Thanh
+                        Toán
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('check-order-btn').addEventListener('click', async function () {
+        const orderId = document.getElementById('order-id').value;
+
+        try {
+            const res = await fetch('/staff/receive-online-order/find_order', {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({order_id: orderId})
+            })
+            const rs = await res.json()
+            if (rs.success) {
+                document.getElementById('customer-name').innerText = rs.order.first_name + " " + rs.order.last_name;
+                document.getElementById('customer-phone').innerText = rs.order.phone_number;
+                document.getElementById('total-amount').setAttribute('data-price', rs.order.total_price);
+                document.getElementById('order-status').innerText = rs.order.order_status;
+                document.getElementById('order-result').classList.remove('d-none');
+                if (rs.order.order_status !== 'processing') {
+                    const confirmPaymentBtn = document.getElementById('confirm-payment-btn');
+                    if (confirmPaymentBtn) {
+                        confirmPaymentBtn.classList.add('btn-secondary');
+                        confirmPaymentBtn.classList.remove('btn-success');
+                        confirmPaymentBtn.setAttribute('disabled', true);
+                    }
+                }
+
+                const priceElement = document.querySelector('#total-amount');
+                const rawPrice = parseFloat(priceElement.getAttribute('data-price'));
+                if (!isNaN(rawPrice)) {
+                    const formattedPrice = new Intl.NumberFormat('vi-VN', {
+                        minimumFractionDigits: 0
+                    }).format(rawPrice);
+                    priceElement.textContent = `${formattedPrice} VND`;
+                }
+            } else {
+                alert(rs.message);
+            }
+
+        } catch (error) {
+            console.error('Error fetching order:', error);
+            alert('Có lỗi xảy ra khi kiểm tra mã đơn hàng!');
+        }
+    });
+
+    document.getElementById('confirm-payment-btn').addEventListener('click', async function () {
+        const orderId = document.getElementById('order-id').value;
+        try {
+            const res = await fetch('/checkout/confirm', {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({order_id: orderId})
+            })
+            const rs = await res.json()
+            if (rs.success) {
+                alert('Đã xác nhận thanh toán thành công!');
+                document.getElementById('order-result').classList.add('d-none');
+                document.getElementById('order-id').value = '';
+            } else {
+                alert(rs.message);
+            }
+        } catch (error) {
+            console.error('Error fetching order:', error);
+            alert('Có lỗi xảy ra khi kiểm tra mã đơn hàng!');
+        }
+    });
+</script>
+<script src="../../static/javascript/format_currency.js"></script>
+{%endblock%}
